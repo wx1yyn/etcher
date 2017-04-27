@@ -157,6 +157,9 @@ PRODUCT_NAME = etcher
 APPLICATION_NAME_LOWERCASE = $(shell echo $(APPLICATION_NAME) | tr A-Z a-z)
 APPLICATION_VERSION_DEBIAN = $(shell echo $(APPLICATION_VERSION) | tr "-" "~")
 
+# Fix hard link Appveyor issues
+CPRF = cp -RLf
+
 # ---------------------------------------------------------------------
 # Rules
 # ---------------------------------------------------------------------
@@ -180,7 +183,7 @@ $(BUILD_OUTPUT_DIRECTORY): | $(BUILD_DIRECTORY)
 $(BUILD_DIRECTORY)/electron-$(TARGET_PLATFORM)-$(TARGET_ARCH)-dependencies: package.json npm-shrinkwrap.json \
 	| $(BUILD_DIRECTORY)
 	mkdir $@
-	cp -rf src $@
+	$(CPRF) src $@
 	./scripts/build/dependencies-npm.sh -p \
 		-r "$(TARGET_ARCH)" \
 		-v "$(ELECTRON_VERSION)" \
@@ -192,7 +195,7 @@ $(BUILD_DIRECTORY)/electron-$(TARGET_PLATFORM)-$(TARGET_ARCH)-dependencies: pack
 $(BUILD_DIRECTORY)/node-$(TARGET_PLATFORM)-$(TARGET_ARCH)-dependencies: package.json npm-shrinkwrap.json \
 	| $(BUILD_DIRECTORY)
 	mkdir $@
-	cp -rf src $@
+	$(CPRF) src $@
 	./scripts/build/dependencies-npm.sh -p -f \
 		-r "$(TARGET_ARCH)" \
 		-v "$(NODE_VERSION)" \
@@ -207,7 +210,7 @@ $(BUILD_DIRECTORY)/electron-$(TARGET_PLATFORM)-$(APPLICATION_VERSION)-$(TARGET_A
 	./scripts/build/electron-create-resources-app.sh -s . -o $@ \
 		-v $(APPLICATION_VERSION) \
 		-f "$(APPLICATION_FILES)"
-	cp -RLf $</* $@
+	$(CPRF) $</* $@
 
 ifdef ANALYTICS_SENTRY_TOKEN
 	./scripts/build/jq-insert.sh \
@@ -244,8 +247,8 @@ $(BUILD_DIRECTORY)/$(APPLICATION_NAME)-cli-$(TARGET_PLATFORM)-$(APPLICATION_VERS
 	| $(BUILD_DIRECTORY)
 	mkdir $@
 	cp $(word 1,$^) $@
-	cp $(word 2,$^) $@
-	cp -rf $(word 3,$^)/* $@
+	$(CPRF) $(word 2,$^) $@
+	$(CPRF) $(word 3,$^)/* $@
 
 $(BUILD_DIRECTORY)/$(APPLICATION_NAME)-cli-$(TARGET_PLATFORM)-$(APPLICATION_VERSION)-$(TARGET_ARCH).js: \
 	$(BUILD_DIRECTORY)/$(APPLICATION_NAME)-cli-$(TARGET_PLATFORM)-$(APPLICATION_VERSION)-$(TARGET_ARCH)-app \
@@ -432,6 +435,7 @@ TARGETS = \
 	package-electron \
 	package-cli \
 	cli-develop \
+	installers-all \
 	electron-develop
 
 package-electron: $(BUILD_DIRECTORY)/$(APPLICATION_NAME)-$(APPLICATION_VERSION)-$(TARGET_PLATFORM)-$(TARGET_ARCH)
@@ -479,6 +483,8 @@ PUBLISH_AWS_S3 += \
 	$(BUILD_OUTPUT_DIRECTORY)/$(APPLICATION_NAME)-$(APPLICATION_VERSION)-win32-$(TARGET_ARCH).exe \
 	$(BUILD_OUTPUT_DIRECTORY)/$(APPLICATION_NAME)-cli-$(APPLICATION_VERSION)-$(TARGET_PLATFORM)-$(TARGET_ARCH).zip
 endif
+
+installers-all: $(PUBLISH_AWS_S3) $(PUBLISH_BINTRAY_DEBIAN)
 
 ifdef PUBLISH_AWS_S3
 publish-aws-s3: $(PUBLISH_AWS_S3)

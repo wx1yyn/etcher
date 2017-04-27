@@ -28,8 +28,9 @@ if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
   ./scripts/build/docker/run-command.sh \
     -r "$TARGET_ARCH" \
     -s "$(pwd)" \
-    -c 'make sanity-checks && xvfb-run --server-args=$XVFB_ARGS npm test'
+    -c 'make sanity-checks && xvfb-run --server-args=$XVFB_ARGS npm test && make installers-all'
 else
   make sanity-checks
   npm test
+  make installers-all
 fi

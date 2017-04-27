@@ -21,5 +21,6 @@ IF "%APPVEYOR_REPO_BRANCH%"=="" (
 
 call make sanity-checks
 call npm test
+call make installers-all
 
 EXIT /B %ERRORLEVEL%
