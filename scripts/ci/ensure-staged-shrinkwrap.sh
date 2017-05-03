@@ -19,13 +19,12 @@
 set -e
 set -u
 
-npm run sass
+npm shrinkwrap --dev
 
-# From http://stackoverflow.com/a/9393642/1641422
 if [[ -n $(git status -s) ]]; then
-  echo "There are unstaged sass changes. Please commit the result of:" 1>&2
+  echo "There are unstaged npm-shrinkwrap.json changes. Please commit the result of:" 1>&2
   echo ""
-  echo "    npm run sass" 1>&2
+  echo "    npm shrinkwrap --dev" 1>&2
   echo ""
   exit 1
 fi
